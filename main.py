@@ -10,21 +10,44 @@ from modules.result_visualizer import visualize_detection_result
 from modules.camera_config_loader import load_camera_config, get_camera_folder, print_camera_config_summary
 from modules.result_gui import ResultGUI
 from modules.com_output import COMOutput
+from modules.config_loader import load_config
 import os
 import time
 from datetime import datetime
 import cv2
 
-PRODUCT_CODE = "ABC123x"
-CSV_PATH = f"config/products/{PRODUCT_CODE}.csv"
-OUTPUT_DIR = "output/results"
-LOG_DIR = "output/logs"
+# ============================================================================
+# Load Configuration
+# ============================================================================
+# Tai config tu file ngoai (config.yaml) thay vi hard-code
+# - De doi product: chi can sua config.yaml, khong can sua code
+# - De deploy nhieu may: moi may 1 file config rieng
+# - Rollback: neu file loi, tu dong dung default config
+cfg = load_config("config.yaml")
 
-# === COM Output Config ===
-ENABLE_COM_OUTPUT = True     # Bat/tat chuc nang COM (de debug)
-COM_PORT = "COM5"            # Cong COM ket noi voi PLC/Arduino
-COM_BAUDRATE = 9600          # Toc do baud
-COM_RETRY = 3                # So lan thu lai neu that bai
+# Extract config values
+PRODUCT_CODE = cfg['product']['code']
+CSV_PATH = cfg['product']['csv_path'].format(code=PRODUCT_CODE)
+OUTPUT_DIR = cfg['paths']['output_dir']
+LOG_DIR = cfg['paths']['log_dir']
+
+# COM Output Config
+ENABLE_COM_OUTPUT = cfg['com_output']['enabled']
+COM_PORT = cfg['com_output']['port']
+COM_BAUDRATE = cfg['com_output']['baudrate']
+COM_RETRY = cfg['com_output']['retry_count']
+
+# Camera Config
+CAMERA_CONFIG_CSV = cfg['camera']['config_csv']
+CAMERA_CREATE_FOLDERS = cfg['camera']['create_folders']
+CAMERA_POLL_INTERVAL = cfg['camera']['poll_interval']
+
+# GUI Config
+GUI_ENABLED = cfg['gui']['enabled']
+GUI_WINDOW_NAME = cfg['gui']['window_name'].format(product_code=PRODUCT_CODE)
+GUI_MAX_HISTORY = cfg['gui']['max_history']
+
+# ============================================================================
 
 # Tao thu muc output neu chua ton tai
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -95,8 +118,8 @@ def main():
         # Load camera config
         log_message("[LOADING] Camera configuration...")
         camera_config = load_camera_config(
-            csv_file="config/camera_config.csv",
-            create_folders=True,
+            csv_file=CAMERA_CONFIG_CSV,
+            create_folders=CAMERA_CREATE_FOLDERS,
             verbose=False
         )
         print_camera_config_summary(camera_config)
@@ -118,14 +141,14 @@ def main():
             os.makedirs(temp_folder, exist_ok=True)
             
             # Khởi tạo watcher
-            watchers[cam] = ImageWatcher(input_folder, temp_folder, poll_interval=0.5)
+            watchers[cam] = ImageWatcher(input_folder, temp_folder, poll_interval=CAMERA_POLL_INTERVAL)
             log_message(f"[INIT] ImageWatcher for {cam}: {input_folder}")
         
         batch_num = 0
         images = {}  # Thu thap anh dan dan (non-blocking)
         
         # Khoi tao GUI
-        gui = ResultGUI(window_name=f"VisionAI - {PRODUCT_CODE}")
+        gui = ResultGUI(window_name=GUI_WINDOW_NAME, max_history=GUI_MAX_HISTORY)
         gui.start()
         
         # Khoi tao COM Output

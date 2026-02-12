@@ -342,3 +342,34 @@
 [2026-02-12 11:05:46] 
 [2026-02-12 11:05:46] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
 [2026-02-12 11:05:57] [GUI] User pressed Quit
+[2026-02-12 11:15:24] ======================================================================
+[2026-02-12 11:15:24] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 11:15:24] Product code: ABC123x
+[2026-02-12 11:15:24] ======================================================================
+[2026-02-12 11:15:24] [LOADING] Camera configuration...
+[2026-02-12 11:15:25] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 11:15:25] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 11:15:25] [WAITING] Waiting for images from: ['CAM1', 'CAM2']
+[2026-02-12 11:15:33] ======================================================================
+[2026-02-12 11:15:33] SYSTEM STOPPED (User interrupted after 0 batches)
+[2026-02-12 11:15:33] ======================================================================
+[2026-02-12 11:16:57] ======================================================================
+[2026-02-12 11:16:57] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 11:16:57] Product code: ABC123x
+[2026-02-12 11:16:57] ======================================================================
+[2026-02-12 11:16:57] [LOADING] Camera configuration...
+[2026-02-12 11:16:57] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 11:16:57] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 11:16:57] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:17:02] [GOT] Camera CAM2 - image received (2464, 3280, 3)
+[2026-02-12 11:17:08] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-12 11:17:08] [READY] All cameras ready. Processing batch #1...
+[2026-02-12 11:17:08] [BATCH 1] Processing CAM2 - (2464, 3280, 3)
+[2026-02-12 11:17:09]   roi_002: OK (OK)
+[2026-02-12 11:17:09] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-12 11:17:09]   roi_001: OK (OK)
+[2026-02-12 11:17:10]   roi_003: OK (OK)
+[2026-02-12 11:17:10] [BATCH 1] COMPLETED - RESULT: OK
+[2026-02-12 11:17:10] 
+[2026-02-12 11:17:10] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:17:21] [GUI] User pressed Quit
