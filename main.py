@@ -10,6 +10,7 @@ from modules.result_visualizer import visualize_detection_result
 from modules.camera_config_loader import load_camera_config, get_camera_folder, print_camera_config_summary
 from modules.result_gui import ResultGUI
 from modules.com_output import COMOutput
+from modules.com_input import COMProductReader
 from modules.config_loader import load_config
 import os
 import time
@@ -23,11 +24,14 @@ import cv2
 # - De doi product: chi can sua config.yaml, khong can sua code
 # - De deploy nhieu may: moi may 1 file config rieng
 # - Rollback: neu file loi, tu dong dung default config
-cfg = load_config("config.yaml")
+cfg = load_config("config/config.yaml")
+
+# Product Mode (manual hoac auto)
+PRODUCT_MODE = cfg['product'].get('mode', 'manual')
+PRODUCT_CODE_MANUAL = cfg['product'].get('code', 'ABC123x')
+PRODUCT_DEFAULT_CODE = cfg['product'].get('default_code', 'ABC123x')
 
 # Extract config values
-PRODUCT_CODE = cfg['product']['code']
-CSV_PATH = cfg['product']['csv_path'].format(code=PRODUCT_CODE)
 OUTPUT_DIR = cfg['paths']['output_dir']
 LOG_DIR = cfg['paths']['log_dir']
 
@@ -44,8 +48,44 @@ CAMERA_POLL_INTERVAL = cfg['camera']['poll_interval']
 
 # GUI Config
 GUI_ENABLED = cfg['gui']['enabled']
-GUI_WINDOW_NAME = cfg['gui']['window_name'].format(product_code=PRODUCT_CODE)
+GUI_WINDOW_NAME_TEMPLATE = cfg['gui']['window_name']  # Template, se format sau
 GUI_MAX_HISTORY = cfg['gui']['max_history']
+
+# ============================================================================
+# Product Code Reader
+# ============================================================================
+# Khoi tao COM Product Reader (neu mode=auto)
+product_reader = None
+if PRODUCT_MODE == 'auto':
+    product_reader = COMProductReader(
+        port=cfg['product'].get('com_input_port', 'COM4'),
+        baudrate=cfg['product'].get('com_input_baudrate', 9600),
+        timeout=cfg['product'].get('com_input_timeout', 1.0),
+        mode='latest',
+        poll_interval=cfg['product'].get('com_input_poll_interval', 0.5)
+    )
+    print(f"[PRODUCT] Mode: AUTO (from COM {cfg['product'].get('com_input_port')})")
+else:
+    print(f"[PRODUCT] Mode: MANUAL (code={PRODUCT_CODE_MANUAL})")
+
+def get_current_product_code() -> str:
+    """
+    Lay product code hien tai (tu COM hoac config)
+    
+    Returns:
+        Product code (str)
+    """
+    if product_reader:
+        # Che do AUTO: doc tu COM
+        code = product_reader.get_current()
+        if code:
+            return code
+        else:
+            # Chua nhan duoc → dung default
+            return PRODUCT_DEFAULT_CODE
+    else:
+        # Che do MANUAL: dung code co dinh
+        return PRODUCT_CODE_MANUAL
 
 # ============================================================================
 
@@ -104,15 +144,31 @@ def main():
     - Xử lý 1 batch
     - Print kết quả
     - Lặp lại chờ batch tiếp
+    - Hỗ trợ đổi product code động (từ COM hoac config)
     """
+    # Bien theo doi product code hien tai
+    current_product_code = None
+    roi_rules = None
+    used_cameras = None
+    
     try:
+        # Start COM Product Reader (neu mode=auto)
+        if product_reader:
+            product_reader.start()
+        
+        # Lay product code ban dau
+        current_product_code = get_current_product_code()
+        
         # Load config
         log_message("="*70)
         log_message("SYSTEM STARTED - Waiting for camera images")
-        log_message(f"Product code: {PRODUCT_CODE}")
+        log_message(f"Product mode: {PRODUCT_MODE}")
+        log_message(f"Product code: {current_product_code}")
         log_message("="*70)
         
-        roi_rules = load_product_csv(CSV_PATH)
+        # Load product CSV
+        csv_path = cfg['product']['csv_path'].format(code=current_product_code)
+        roi_rules = load_product_csv(csv_path)
         used_cameras = get_used_cameras(roi_rules)
         
         # Load camera config
@@ -147,8 +203,9 @@ def main():
         batch_num = 0
         images = {}  # Thu thap anh dan dan (non-blocking)
         
-        # Khoi tao GUI
-        gui = ResultGUI(window_name=GUI_WINDOW_NAME, max_history=GUI_MAX_HISTORY)
+        # Khoi tao GUI (dynamic window name)
+        gui_window_name = GUI_WINDOW_NAME_TEMPLATE.format(product_code=current_product_code)
+        gui = ResultGUI(window_name=gui_window_name, max_history=GUI_MAX_HISTORY)
         gui.start()
         
         # Khoi tao COM Output
@@ -162,8 +219,35 @@ def main():
         log_message(f"[WAITING] Waiting for images from: {used_cameras}")
         
         # === VONG LAP CHINH (Non-blocking) ===
-        # Moi vong: poll anh → refresh GUI → xu ly neu du anh
+        # Moi vong: kiem tra product change → poll anh → refresh GUI → xu ly neu du anh
         while True:
+            
+            # --- Buoc 0: Kiem tra product code co thay doi khong ---
+            new_product_code = get_current_product_code()
+            if new_product_code != current_product_code:
+                log_message("="*70)
+                log_message(f"[PRODUCT CHANGE] {current_product_code} → {new_product_code}")
+                log_message("="*70)
+                
+                current_product_code = new_product_code
+                
+                # Reload product CSV
+                try:
+                    csv_path = cfg['product']['csv_path'].format(code=current_product_code)
+                    roi_rules = load_product_csv(csv_path)
+                    used_cameras = get_used_cameras(roi_rules)
+                    
+                    log_message(f"[RELOAD] Product CSV loaded: {csv_path}")
+                    log_message(f"[RELOAD] Cameras: {used_cameras}")
+                    
+                    # Reset images (cho batch moi)
+                    images = {}
+                    
+                except FileNotFoundError as e:
+                    log_message(f"[ERROR] Product CSV not found: {e}")
+                    log_message(f"[ERROR] Keeping previous product: {current_product_code}")
+                    # Rollback
+                    current_product_code = new_product_code  # Keep using old one
             
             # --- Buoc 1: Poll anh (KHONG block) ---
             images = poll_cameras_once(watchers, used_cameras, images)
@@ -263,7 +347,7 @@ def main():
             # === THEM: Update GUI ===
             gui.update(gui_roi_items, final_status, {
                 "batch_num": batch_num,
-                "product_code": PRODUCT_CODE,
+                "product_code": current_product_code,  # Dynamic product code
                 "batch_time": batch_time,
             })
             
@@ -299,13 +383,18 @@ def main():
         log_message(f"[FATAL] {str(e)}")
         print(f"\n[ERROR] {str(e)}\n")
     finally:
-        # Dong GUI va COM an toan
+        # Dong GUI, COM output va COM input an toan
         try:
             gui.close()
         except Exception:
             pass
         try:
             com_output.close()
+        except Exception:
+            pass
+        try:
+            if product_reader:
+                product_reader.stop()
         except Exception:
             pass
 
