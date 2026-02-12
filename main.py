@@ -7,6 +7,8 @@ from modules.detector import detect_object
 from modules.comparator import compare_detection
 from modules.result_manager import aggregate_results
 from modules.result_visualizer import visualize_detection_result
+from modules.camera_config_loader import load_camera_config, get_camera_folder, print_camera_config_summary
+from modules.result_gui import ResultGUI
 import os
 import time
 from datetime import datetime
@@ -34,46 +36,34 @@ def log_message(message: str) -> None:
         f.write(log_msg + "\n")
 
 
-def wait_for_all_cameras_images(watchers: dict, used_cameras: list) -> dict:
+def poll_cameras_once(watchers: dict, used_cameras: list, images: dict) -> dict:
     """
-    Chờ tất cả camera có ảnh mới dùng ImageWatcher
-    - Chỉ trả về khi tất cả camera đều có ảnh
+    Kiem tra 1 luot tat ca camera (NON-BLOCKING).
+    - Khong cho, chi kiem tra co anh moi khong
+    - Neu co → doc anh, them vao dict
+    - Neu khong → bo qua, tra ve ngay
     
     Args:
-        watchers (dict): {"CAM1": ImageWatcher, "CAM2": ImageWatcher, ...}
-        used_cameras (list): Danh sách camera cần chờ
+        watchers: {"CAM1": ImageWatcher, ...}
+        used_cameras: Danh sach camera can cho
+        images: Dict anh da thu thap duoc (se duoc cap nhat)
         
     Returns:
-        dict: {"CAM1": image_array, "CAM2": image_array, ...}
+        dict: images da duoc cap nhat
     """
-    images = {}
-    log_message(f"[WAITING] Waiting for images from: {used_cameras}")
-    print("(Waiting for camera images...)\n")
-    
-    while len(images) < len(used_cameras):
-        # Polling tất cả camera
-        for cam in used_cameras:
-            if cam in images:
-                # Đã có ảnh từ camera này
-                continue
-            
-            # Get new images từ ImageWatcher
-            new_images = watchers[cam].get_new_images()
-            
-            if new_images:
-                # Lấy ảnh đầu tiên trong danh sách
-                image_path = new_images[0]['temp_path']
-                image = cv2.imread(image_path)
-                if image is not None:
-                    images[cam] = image
-                    log_message(f"[GOT] Camera {cam} - image received {image.shape}")
-                    print()  # Newline
+    for cam in used_cameras:
+        if cam in images:
+            continue  # Da co anh tu camera nay
         
-        # Nếu chưa đủ tất cả, chờ 0.5s rồi kiểm tra lại
-        if len(images) < len(used_cameras):
-            time.sleep(0.5)
+        new_images = watchers[cam].get_new_images()
+        
+        if new_images:
+            image_path = new_images[0]['temp_path']
+            image = cv2.imread(image_path)
+            if image is not None:
+                images[cam] = image
+                log_message(f"[GOT] Camera {cam} - image received {image.shape}")
     
-    log_message(f"[READY] All cameras ready. Processing batch...")
     return images
 
 def main():
@@ -95,29 +85,71 @@ def main():
         roi_rules = load_product_csv(CSV_PATH)
         used_cameras = get_used_cameras(roi_rules)
         
+        # Load camera config
+        log_message("[LOADING] Camera configuration...")
+        camera_config = load_camera_config(
+            csv_file="config/camera_config.csv",
+            create_folders=True,
+            verbose=False
+        )
+        print_camera_config_summary(camera_config)
+        
         # Khởi tạo ImageWatcher cho mỗi camera
         watchers = {}
         for cam in used_cameras:
-            watch_folder = f"images/temp/{cam}"
-            temp_folder = f"images/process_temp/{cam}"
-            os.makedirs(watch_folder, exist_ok=True)
+            # Lấy folder từ config
+            input_folder = get_camera_folder(cam, camera_config, "input")
+            temp_folder = get_camera_folder(cam, camera_config, "temp")
+            
+            # Kiểm tra camera có được cấu hình không
+            if input_folder is None or temp_folder is None:
+                log_message(f"[ERROR] Camera {cam} is not configured in camera_config.csv!")
+                continue
+            
+            # Tạo folder nếu chưa có
+            os.makedirs(input_folder, exist_ok=True)
             os.makedirs(temp_folder, exist_ok=True)
-            watchers[cam] = ImageWatcher(watch_folder, temp_folder, poll_interval=0.5)
-            log_message(f"[INIT] ImageWatcher for {cam}: {watch_folder}")
+            
+            # Khởi tạo watcher
+            watchers[cam] = ImageWatcher(input_folder, temp_folder, poll_interval=0.5)
+            log_message(f"[INIT] ImageWatcher for {cam}: {input_folder}")
         
         batch_num = 0
+        images = {}  # Thu thap anh dan dan (non-blocking)
         
-        # Vòng lặp: chờ ảnh → xử lý → print → lặp lại
+        # Khoi tao GUI
+        gui = ResultGUI(window_name=f"VisionAI - {PRODUCT_CODE}")
+        gui.start()
+        
+        log_message(f"[WAITING] Waiting for images from: {used_cameras}")
+        
+        # === VONG LAP CHINH (Non-blocking) ===
+        # Moi vong: poll anh → refresh GUI → xu ly neu du anh
         while True:
-            batch_num += 1
             
-            # Chờ tất cả camera có ảnh
-            images = wait_for_all_cameras_images(watchers, used_cameras)
+            # --- Buoc 1: Poll anh (KHONG block) ---
+            images = poll_cameras_once(watchers, used_cameras, images)
+            
+            # --- Buoc 2: Refresh GUI + doc phim (BAT BUOC moi vong) ---
+            action = gui.show(wait_time=30)
+            if action == 'quit':
+                log_message("[GUI] User pressed Quit")
+                break
+            
+            # --- Buoc 3: Chua du anh → quay lai buoc 1 ---
+            if len(images) < len(used_cameras):
+                continue
+            
+            # --- Buoc 4: DU ANH → Xu ly batch ---
+            # (Logic xu ly GIU NGUYEN 100%)
+            batch_num += 1
+            log_message(f"[READY] All cameras ready. Processing batch #{batch_num}...")
             
             roi_results = []
+            gui_roi_items = []  # Thu thap data cho GUI
             batch_start_time = time.time()
 
-            # Xử lý từng camera
+            # Xu ly tung camera
             for cam in used_cameras:
                 image = images[cam]
                 log_message(f"[BATCH {batch_num}] Processing {cam} - {image.shape}")
@@ -146,7 +178,7 @@ def main():
                             rule["compare_roi"]
                         )
 
-                        # Ve hinh anh ket qua
+                        # Ve hinh anh ket qua (VAN luu file nhu cu)
                         roi_data["rule"] = rule
                         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                         output_path = f"{OUTPUT_DIR}/{timestamp}_{rule['roi_id']}_{cam}.jpg"
@@ -161,6 +193,19 @@ def main():
                             "pass": passed,
                             "reason": reason
                         })
+                        
+                        # === THEM: Gom data cho GUI ===
+                        gui_roi_items.append({
+                            "roi_id": rule["roi_id"],
+                            "camera": cam,
+                            "crop_image": roi_data["detect_image"],
+                            "passed": passed,
+                            "reason": reason,
+                            "detect_result": detect_result,
+                            "detect_roi": rule["detect_roi"],
+                            "compare_roi": rule["compare_roi"],
+                        })
+                        
                     except Exception as e:
                         log_message(f"  [ERROR] {rule['roi_id']}: {str(e)}")
                         roi_results.append({
@@ -170,11 +215,18 @@ def main():
                             "reason": f"ERROR: {str(e)}"
                         })
 
-            # Tính kết quả batch
+            # Tinh ket qua batch
             final_status = aggregate_results(roi_results)
             batch_time = time.time() - batch_start_time
             
-            # Print kết quả
+            # === THEM: Update GUI ===
+            gui.update(gui_roi_items, final_status, {
+                "batch_num": batch_num,
+                "product_code": PRODUCT_CODE,
+                "batch_time": batch_time,
+            })
+            
+            # Print ket qua (GIU NGUYEN)
             print("\n" + "="*70)
             print(f"BATCH #{batch_num} - RESULT: {final_status} | Time: {batch_time:.2f}s")
             print("="*70)
@@ -189,6 +241,10 @@ def main():
             
             log_message(f"[BATCH {batch_num}] COMPLETED - RESULT: {final_status}")
             log_message("")
+            
+            # Reset cho batch tiep theo
+            images = {}
+            log_message(f"[WAITING] Waiting for images from: {used_cameras}")
     
     except FileNotFoundError as e:
         log_message(f"[FATAL] {e}")
@@ -201,6 +257,12 @@ def main():
     except Exception as e:
         log_message(f"[FATAL] {str(e)}")
         print(f"\n[ERROR] {str(e)}\n")
+    finally:
+        # Dong GUI an toan
+        try:
+            gui.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
