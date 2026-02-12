@@ -9,6 +9,7 @@ from modules.result_manager import aggregate_results
 from modules.result_visualizer import visualize_detection_result
 from modules.camera_config_loader import load_camera_config, get_camera_folder, print_camera_config_summary
 from modules.result_gui import ResultGUI
+from modules.com_output import COMOutput
 import os
 import time
 from datetime import datetime
@@ -18,6 +19,12 @@ PRODUCT_CODE = "ABC123x"
 CSV_PATH = f"config/products/{PRODUCT_CODE}.csv"
 OUTPUT_DIR = "output/results"
 LOG_DIR = "output/logs"
+
+# === COM Output Config ===
+ENABLE_COM_OUTPUT = True     # Bat/tat chuc nang COM (de debug)
+COM_PORT = "COM5"            # Cong COM ket noi voi PLC/Arduino
+COM_BAUDRATE = 9600          # Toc do baud
+COM_RETRY = 3                # So lan thu lai neu that bai
 
 # Tao thu muc output neu chua ton tai
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -121,6 +128,14 @@ def main():
         gui = ResultGUI(window_name=f"VisionAI - {PRODUCT_CODE}")
         gui.start()
         
+        # Khoi tao COM Output
+        com_output = COMOutput(
+            port=COM_PORT,
+            baudrate=COM_BAUDRATE,
+            enabled=ENABLE_COM_OUTPUT,
+            retry_count=COM_RETRY
+        )
+        
         log_message(f"[WAITING] Waiting for images from: {used_cameras}")
         
         # === VONG LAP CHINH (Non-blocking) ===
@@ -219,6 +234,9 @@ def main():
             final_status = aggregate_results(roi_results)
             batch_time = time.time() - batch_start_time
             
+            # === THEM: Gui tin hieu COM ===
+            com_output.send_result(final_status)
+            
             # === THEM: Update GUI ===
             gui.update(gui_roi_items, final_status, {
                 "batch_num": batch_num,
@@ -258,9 +276,13 @@ def main():
         log_message(f"[FATAL] {str(e)}")
         print(f"\n[ERROR] {str(e)}\n")
     finally:
-        # Dong GUI an toan
+        # Dong GUI va COM an toan
         try:
             gui.close()
+        except Exception:
+            pass
+        try:
+            com_output.close()
         except Exception:
             pass
 

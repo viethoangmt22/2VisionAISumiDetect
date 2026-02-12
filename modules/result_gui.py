@@ -172,7 +172,7 @@ class ResultGUI:
         
         # Header
         cv2.rectangle(canvas, (0, 0), (1280, 60), self.COLOR_HEADER, -1)
-        cv2.putText(canvas, "VisionAI Sumi Detect", 
+        cv2.putText(canvas, "VisionAI - SHWS", 
                     (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, self.COLOR_WHITE, 2)
         
         # Waiting message

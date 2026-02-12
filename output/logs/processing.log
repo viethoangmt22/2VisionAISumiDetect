@@ -214,3 +214,131 @@
 [2026-02-12 10:21:30] 
 [2026-02-12 10:21:30] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
 [2026-02-12 10:21:42] [GUI] User pressed Quit
+[2026-02-12 10:42:33] ======================================================================
+[2026-02-12 10:42:33] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 10:42:33] Product code: ABC123x
+[2026-02-12 10:42:33] ======================================================================
+[2026-02-12 10:42:33] [LOADING] Camera configuration...
+[2026-02-12 10:42:33] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 10:42:33] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 10:42:33] [WAITING] Waiting for images from: ['CAM1', 'CAM2']
+[2026-02-12 10:43:14] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-12 10:43:23] [GOT] Camera CAM2 - image received (2464, 3280, 3)
+[2026-02-12 10:43:23] [READY] All cameras ready. Processing batch #1...
+[2026-02-12 10:43:23] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-12 10:43:25]   roi_001: OK (OK)
+[2026-02-12 10:43:26]   roi_003: OK (OK)
+[2026-02-12 10:43:26] [BATCH 1] Processing CAM2 - (2464, 3280, 3)
+[2026-02-12 10:43:27]   roi_002: OK (OK)
+[2026-02-12 10:43:27] [BATCH 1] COMPLETED - RESULT: OK
+[2026-02-12 10:43:27] 
+[2026-02-12 10:43:27] [WAITING] Waiting for images from: ['CAM1', 'CAM2']
+[2026-02-12 10:43:38] [GUI] User pressed Quit
+[2026-02-12 10:58:33] ======================================================================
+[2026-02-12 10:58:33] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 10:58:33] Product code: ABC123x
+[2026-02-12 10:58:33] ======================================================================
+[2026-02-12 10:58:33] [LOADING] Camera configuration...
+[2026-02-12 10:58:33] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 10:58:33] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 10:58:34] [WAITING] Waiting for images from: ['CAM1', 'CAM2']
+[2026-02-12 10:58:50] ======================================================================
+[2026-02-12 10:58:50] SYSTEM STOPPED (User interrupted after 0 batches)
+[2026-02-12 10:58:50] ======================================================================
+[2026-02-12 10:59:51] ======================================================================
+[2026-02-12 10:59:51] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 10:59:51] Product code: ABC123x
+[2026-02-12 10:59:51] ======================================================================
+[2026-02-12 10:59:51] [LOADING] Camera configuration...
+[2026-02-12 10:59:51] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 10:59:51] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 10:59:51] [WAITING] Waiting for images from: ['CAM1', 'CAM2']
+[2026-02-12 11:00:03] ======================================================================
+[2026-02-12 11:00:03] SYSTEM STOPPED (User interrupted after 0 batches)
+[2026-02-12 11:00:03] ======================================================================
+[2026-02-12 11:00:19] ======================================================================
+[2026-02-12 11:00:19] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 11:00:19] Product code: ABC123x
+[2026-02-12 11:00:19] ======================================================================
+[2026-02-12 11:00:19] [LOADING] Camera configuration...
+[2026-02-12 11:00:19] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 11:00:19] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 11:00:20] [WAITING] Waiting for images from: ['CAM1', 'CAM2']
+[2026-02-12 11:00:22] [GOT] Camera CAM2 - image received (2464, 3280, 3)
+[2026-02-12 11:00:28] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-12 11:00:28] [READY] All cameras ready. Processing batch #1...
+[2026-02-12 11:00:28] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-12 11:00:30]   roi_001: NG (NOT_FOUND)
+[2026-02-12 11:00:30]   roi_003: OK (OK)
+[2026-02-12 11:00:30] [BATCH 1] Processing CAM2 - (2464, 3280, 3)
+[2026-02-12 11:00:31]   roi_002: NG (NOT_FOUND)
+[2026-02-12 11:00:31] [BATCH 1] COMPLETED - RESULT: NG
+[2026-02-12 11:00:31] 
+[2026-02-12 11:00:31] [WAITING] Waiting for images from: ['CAM1', 'CAM2']
+[2026-02-12 11:00:48] ======================================================================
+[2026-02-12 11:00:48] SYSTEM STOPPED (User interrupted after 1 batches)
+[2026-02-12 11:00:48] ======================================================================
+[2026-02-12 11:02:20] ======================================================================
+[2026-02-12 11:02:20] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 11:02:20] Product code: ABC123x
+[2026-02-12 11:02:20] ======================================================================
+[2026-02-12 11:02:20] [LOADING] Camera configuration...
+[2026-02-12 11:02:20] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 11:02:20] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 11:02:20] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:02:26] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-12 11:02:33] [GOT] Camera CAM2 - image received (2464, 3280, 3)
+[2026-02-12 11:02:33] [READY] All cameras ready. Processing batch #1...
+[2026-02-12 11:02:33] [BATCH 1] Processing CAM2 - (2464, 3280, 3)
+[2026-02-12 11:02:34]   roi_002: OK (OK)
+[2026-02-12 11:02:34] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-12 11:02:35]   roi_001: NG (NOT_FOUND)
+[2026-02-12 11:02:36]   roi_003: OK (OK)
+[2026-02-12 11:02:36] [BATCH 1] COMPLETED - RESULT: NG
+[2026-02-12 11:02:36] 
+[2026-02-12 11:02:36] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:03:08] ======================================================================
+[2026-02-12 11:03:08] SYSTEM STOPPED (User interrupted after 1 batches)
+[2026-02-12 11:03:08] ======================================================================
+[2026-02-12 11:03:30] ======================================================================
+[2026-02-12 11:03:30] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 11:03:30] Product code: ABC123x
+[2026-02-12 11:03:30] ======================================================================
+[2026-02-12 11:03:30] [LOADING] Camera configuration...
+[2026-02-12 11:03:30] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 11:03:30] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 11:03:30] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:03:35] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-12 11:03:40] [GOT] Camera CAM2 - image received (2464, 3280, 3)
+[2026-02-12 11:03:40] [READY] All cameras ready. Processing batch #1...
+[2026-02-12 11:03:40] [BATCH 1] Processing CAM2 - (2464, 3280, 3)
+[2026-02-12 11:03:41]   roi_002: NG (NOT_FOUND)
+[2026-02-12 11:03:41] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-12 11:03:42]   roi_001: OK (OK)
+[2026-02-12 11:03:43]   roi_003: OK (OK)
+[2026-02-12 11:03:43] [BATCH 1] COMPLETED - RESULT: NG
+[2026-02-12 11:03:43] 
+[2026-02-12 11:03:43] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:03:56] ======================================================================
+[2026-02-12 11:03:56] SYSTEM STOPPED (User interrupted after 1 batches)
+[2026-02-12 11:03:56] ======================================================================
+[2026-02-12 11:05:28] ======================================================================
+[2026-02-12 11:05:28] SYSTEM STARTED - Waiting for camera images
+[2026-02-12 11:05:28] Product code: ABC123x
+[2026-02-12 11:05:28] ======================================================================
+[2026-02-12 11:05:28] [LOADING] Camera configuration...
+[2026-02-12 11:05:28] [INIT] ImageWatcher for CAM2: D:/ImageTest/CAM2
+[2026-02-12 11:05:28] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-12 11:05:28] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:05:39] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-12 11:05:44] [GOT] Camera CAM2 - image received (2464, 3280, 3)
+[2026-02-12 11:05:44] [READY] All cameras ready. Processing batch #1...
+[2026-02-12 11:05:44] [BATCH 1] Processing CAM2 - (2464, 3280, 3)
+[2026-02-12 11:05:45]   roi_002: OK (OK)
+[2026-02-12 11:05:45] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-12 11:05:45]   roi_001: OK (OK)
+[2026-02-12 11:05:46]   roi_003: OK (OK)
+[2026-02-12 11:05:46] [BATCH 1] COMPLETED - RESULT: OK
+[2026-02-12 11:05:46] 
+[2026-02-12 11:05:46] [WAITING] Waiting for images from: ['CAM2', 'CAM1']
+[2026-02-12 11:05:57] [GUI] User pressed Quit
