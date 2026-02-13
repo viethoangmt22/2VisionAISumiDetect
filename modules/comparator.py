@@ -1,3 +1,6 @@
+import math
+
+
 def is_center_inside_roi(bbox, roi):
     """
     Kiểm tra tâm của bounding box có nằm trong vùng ROI hay không.
@@ -30,6 +33,74 @@ def compare_detection(detect_result, compare_roi):
         return False, "OUT_OF_COMPARE_ROI"
 
     return True, "OK"
+
+
+def compare_angle(detect_result, keypoint_idx_1, keypoint_idx_2,
+                  expected_angle, angle_tolerance):
+    """
+    Kiem tra goc giua 2 keypoints co nam trong khoang cho phep khong.
+    
+    Args:
+        detect_result: Ket qua tu detect_object() - phai co "keypoints"
+        keypoint_idx_1: Index keypoint goc (VD: 0)
+        keypoint_idx_2: Index keypoint ngon (VD: 3)
+        expected_angle: Goc mong muoi (do, 0-360)
+        angle_tolerance: Sai so cho phep (do, VD: 20 = +/-20)
+    
+    Returns:
+        (passed, reason, angle_info)
+        - passed: True/False
+        - reason: "ANGLE_OK" / "WRONG_ANGLE(xxx.x)" / "NO_KEYPOINTS"
+        - angle_info: dict chua thong tin goc (de ve len anh)
+    
+    Vi du:
+        expected_angle = 120, angle_tolerance = 20
+        measured = 130 -> diff = 10 < 20 -> OK
+        measured = 80  -> diff = 40 > 20 -> NG
+    """
+    if not detect_result.get("found"):
+        return False, "NOT_FOUND", {}
+    
+    keypoints = detect_result.get("keypoints")
+    if keypoints is None or len(keypoints) == 0:
+        return False, "NO_KEYPOINTS", {}
+    
+    if keypoint_idx_1 >= len(keypoints) or keypoint_idx_2 >= len(keypoints):
+        return False, "KEYPOINT_INDEX_OUT_OF_RANGE", {}
+    
+    kp1 = keypoints[keypoint_idx_1]  # (x, y, conf)
+    kp2 = keypoints[keypoint_idx_2]  # (x, y, conf)
+    
+    # Tinh goc: huong tu kp1 -> kp2
+    dx = kp2[0] - kp1[0]
+    dy = kp2[1] - kp1[1]
+    angle = math.degrees(math.atan2(dy, dx))
+    
+    # Normalize ve [0, 360)
+    if angle < 0:
+        angle += 360
+    
+    # Tinh sai lech goc (xu ly truong hop qua 0/360)
+    angle_diff = abs(angle - expected_angle)
+    if angle_diff > 180:
+        angle_diff = 360 - angle_diff
+    
+    # Thong tin goc (de ve len anh)
+    angle_info = {
+        "measured_angle": angle,
+        "expected_angle": expected_angle,
+        "angle_tolerance": angle_tolerance,
+        "angle_diff": angle_diff,
+        "keypoint_idx_1": keypoint_idx_1,
+        "keypoint_idx_2": keypoint_idx_2,
+        "kp1": (kp1[0], kp1[1]),
+        "kp2": (kp2[0], kp2[1]),
+    }
+    
+    if angle_diff <= angle_tolerance:
+        return True, "ANGLE_OK", angle_info
+    else:
+        return False, f"WRONG_ANGLE({angle:.1f})", angle_info
 
 
 # --- PHẦN TEST NHANH ---

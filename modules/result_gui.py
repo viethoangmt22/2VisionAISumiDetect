@@ -346,7 +346,41 @@ class ResultGUI:
             cy_pt = (by1 + by2) // 2
             cv2.circle(result_img, (cx_pt, cy_pt), 4, color, -1)
         
-        # --- 5. Ve reason (goc duoi) ---
+        # --- 5. Ve keypoints va goc (neu co) ---
+        angle_info = item.get("angle_info")
+        if angle_info and detect_result.get("found"):
+            COLOR_KP = (0, 255, 255)      # Vang
+            COLOR_ANGLE = (255, 0, 255)    # Tim
+            
+            # Ve tat ca keypoints (cham nho + so thu tu)
+            keypoints = detect_result.get("keypoints", [])
+            if keypoints:
+                for i, kp in enumerate(keypoints):
+                    kx = int(kp[0]) - offset_x
+                    ky = int(kp[1]) - offset_y
+                    cv2.circle(result_img, (kx, ky), 3, COLOR_KP, -1)
+                    cv2.putText(result_img, str(i), (kx + 5, ky - 5),
+                                font, 0.3, COLOR_KP, 1)
+            
+            # Ve 2 keypoints dung cho angle (cham to)
+            akp1 = (int(angle_info["kp1"][0]) - offset_x,
+                     int(angle_info["kp1"][1]) - offset_y)
+            akp2 = (int(angle_info["kp2"][0]) - offset_x,
+                     int(angle_info["kp2"][1]) - offset_y)
+            cv2.circle(result_img, akp1, 6, COLOR_ANGLE, -1)
+            cv2.circle(result_img, akp2, 6, COLOR_ANGLE, -1)
+            
+            # Ve duong noi voi mui ten
+            cv2.arrowedLine(result_img, akp1, akp2, COLOR_ANGLE, 2, tipLength=0.2)
+            
+            # Ve goc
+            mid_x = (akp1[0] + akp2[0]) // 2
+            mid_y = (akp1[1] + akp2[1]) // 2
+            angle_text = f"{angle_info['measured_angle']:.1f}"
+            cv2.putText(result_img, angle_text, (mid_x, mid_y - 10),
+                        font, 0.5, COLOR_ANGLE, 2)
+        
+        # --- 6. Ve reason (goc duoi) ---
         if reason:
             cv2.putText(result_img, reason, (5, h - 8), 
                         font, 0.4, (200, 200, 200), 1)

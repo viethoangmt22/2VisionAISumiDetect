@@ -34,7 +34,7 @@ def detect_object(model: YOLO, image: Any, class_id: int, conf_thres: float,
     x_offset, y_offset = roi_offset
 
     for r in results:
-        for box in r.boxes:
+        for idx, box in enumerate(r.boxes):
             if int(box.cls[0]) == class_id and box.conf[0] >= conf_thres:
                 # Toa do tren anh crop
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
@@ -45,16 +45,31 @@ def detect_object(model: YOLO, image: Any, class_id: int, conf_thres: float,
                 x2_real = x2 + x_offset
                 y2_real = y2 + y_offset
                 
+                keypoints = None
+                if r.keypoints is not None:
+                    try:
+                        kp_data = r.keypoints.data[idx]
+                        keypoints = []
+                        for kp in kp_data:
+                            kx = float(kp[0]) + x_offset
+                            ky = float(kp[1]) + y_offset
+                            kconf = float(kp[2]) if len(kp) > 2 else 0.0
+                            keypoints.append((kx, ky, kconf))
+                    except Exception:
+                        keypoints = None
+
                 return {
                     "found": True,
                     "bbox": (x1_real, y1_real, x2_real, y2_real),
-                    "confidence": float(box.conf[0])
+                    "confidence": float(box.conf[0]),
+                    "keypoints": keypoints
                 }
 
     return {
         "found": False,
         "bbox": None,
-        "confidence": 0.0
+        "confidence": 0.0,
+        "keypoints": None
     }
 
 

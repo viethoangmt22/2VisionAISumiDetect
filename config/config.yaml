@@ -22,7 +22,7 @@
 #   - manual: Doc product code tu config (co dinh)
 #   - auto: Doc product code tu cong COM (dong, tu PLC/scanner)
 product:
-  mode: "auto"                           # "manual" hoac "auto"
+  mode: "manual"                           # "manual" hoac "auto"
   
   # --- CHE DO MANUAL ---
   code: "ABC123x"                          # Ma hang (chi dung khi mode=manual)
@@ -54,7 +54,7 @@ camera:
 # --- COM Output Configuration ---
 # Gui tin hieu OK/NG qua cong COM den PLC/Arduino
 com_output:
-  enabled: true          # Bat/tat chuc nang (false de debug khong can COM)
+  enabled: false          # Bat/tat chuc nang (false de debug khong can COM)
   port: "COM5"           # Cong COM (VD: COM3, COM5, COM10)
   baudrate: 9600         # Toc do baud (9600, 19200, 115200, ...)
   retry_count: 3         # So lan thu lai neu that bai

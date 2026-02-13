@@ -1,0 +1,2 @@
+roi_id,camera,model_name,class_id,class_name,x_min,y_min,x_max,y_max,confidence,keypoint_idx_1,keypoint_idx_2,expected_angle,angle_tolerance
+roi_001,CAM1,MarkF,0,mark,1953,1643,2142,2055,0.49,0,3,120,20

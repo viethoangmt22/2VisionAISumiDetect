@@ -4,7 +4,7 @@ from modules.image_watcher import ImageWatcher
 from modules.roi_manager import prepare_roi_data
 from modules.model_manager import get_model
 from modules.detector import detect_object
-from modules.comparator import compare_detection
+from modules.comparator import compare_detection, compare_angle
 from modules.result_manager import aggregate_results
 from modules.result_visualizer import visualize_detection_result
 from modules.camera_config_loader import load_camera_config, get_camera_folder, print_camera_config_summary
@@ -300,11 +300,28 @@ def main():
                             rule["compare_roi"]
                         )
 
+                        # === Keypoint angle check (neu co config) ===
+                        angle_info = {}
+                        if rule.get("keypoint_idx_1") is not None:
+                            if detect_result.get("found"):
+                                # Tinh goc (luon tinh de hien thi debug)
+                                angle_passed, angle_reason, angle_info = compare_angle(
+                                    detect_result,
+                                    rule["keypoint_idx_1"],
+                                    rule["keypoint_idx_2"],
+                                    rule["expected_angle"],
+                                    rule["angle_tolerance"]
+                                )
+                                # Goc sai → NG (chi khi vi tri da OK)
+                                if passed and not angle_passed:
+                                    passed = False
+                                    reason = angle_reason
+
                         # Ve hinh anh ket qua (VAN luu file nhu cu)
                         roi_data["rule"] = rule
                         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                         output_path = f"{OUTPUT_DIR}/{timestamp}_{rule['roi_id']}_{cam}.jpg"
-                        visualize_detection_result(image, roi_data, detect_result, passed, output_path)
+                        visualize_detection_result(image, roi_data, detect_result, passed, output_path, angle_info=angle_info)
 
                         status_str = "OK" if passed else "NG"
                         log_message(f"  {rule['roi_id']}: {status_str} ({reason})")
@@ -326,6 +343,7 @@ def main():
                             "detect_result": detect_result,
                             "detect_roi": rule["detect_roi"],
                             "compare_roi": rule["compare_roi"],
+                            "angle_info": angle_info,
                         })
                         
                     except Exception as e:

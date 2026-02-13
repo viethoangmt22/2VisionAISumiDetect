@@ -104,12 +104,62 @@ def draw_status(image: Any, status: str, roi_id: str = "") -> None:
                color_text, font_thickness)
 
 
+def draw_keypoints_and_angle(image: Any, detect_result: Dict[str, Any],
+                              angle_info: Dict[str, Any],
+                              color_kp: Tuple[int, int, int] = (0, 255, 255),
+                              color_line: Tuple[int, int, int] = (255, 0, 255)) -> None:
+    """
+    Ve keypoints va goc len anh (toa do tuyet doi tren anh goc)
+    
+    Args:
+        image: Anh (se ve truc tiep len anh nay)
+        detect_result: Ket qua detect (co "keypoints")
+        angle_info: Dict tu compare_angle():
+            {"kp1": (x,y), "kp2": (x,y), "measured_angle": float, ...}
+        color_kp: Mau cham keypoint (BGR) - Vang
+        color_line: Mau duong noi + goc (BGR) - Tim
+    """
+    if not angle_info:
+        return
+    
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    
+    # 1. Ve tat ca keypoints (cham nho + so thu tu)
+    keypoints = detect_result.get("keypoints", [])
+    if keypoints:
+        for i, kp in enumerate(keypoints):
+            kx, ky = int(kp[0]), int(kp[1])
+            cv2.circle(image, (kx, ky), 4, color_kp, -1)
+            cv2.putText(image, str(i), (kx + 6, ky - 6), font, 0.4, color_kp, 1)
+    
+    # 2. Ve 2 keypoints dung cho angle (cham to hon)
+    kp1 = (int(angle_info["kp1"][0]), int(angle_info["kp1"][1]))
+    kp2 = (int(angle_info["kp2"][0]), int(angle_info["kp2"][1]))
+    cv2.circle(image, kp1, 8, color_line, -1)
+    cv2.circle(image, kp2, 8, color_line, -1)
+    
+    # 3. Ve duong noi voi mui ten (kp1 -> kp2)
+    cv2.arrowedLine(image, kp1, kp2, color_line, 2, tipLength=0.15)
+    
+    # 4. Ve thong tin goc o giua duong noi
+    mid_x = (kp1[0] + kp2[0]) // 2
+    mid_y = (kp1[1] + kp2[1]) // 2
+    
+    measured = angle_info["measured_angle"]
+    expected = angle_info["expected_angle"]
+    tolerance = angle_info["angle_tolerance"]
+    
+    angle_text = f"{measured:.1f} (exp:{expected:.0f}+/-{tolerance:.0f})"
+    cv2.putText(image, angle_text, (mid_x - 50, mid_y - 15), font, 0.5, color_line, 2)
+
+
 def visualize_detection_result(
     image: Any,
     roi_data: Dict[str, Any],
     detect_result: Dict[str, Any],
     passed: bool,
-    output_path: str = None
+    output_path: str = None,
+    angle_info: Dict[str, Any] = None
 ) -> Any:
     """
     Ve toan bo ket qua detection: detect_roi, compare_roi, bbox, status
@@ -155,6 +205,10 @@ def visualize_detection_result(
         bbox = detect_result["bbox"]
         confidence = detect_result["confidence"]
         draw_bbox(viz_image, bbox, (0, 255, 255), thickness=2, confidence=confidence)
+    
+    # Ve keypoints va goc (neu co)
+    if angle_info:
+        draw_keypoints_and_angle(viz_image, detect_result, angle_info)
     
     # Ve status OK/NG
     status_text = "OK" if passed else "NG"

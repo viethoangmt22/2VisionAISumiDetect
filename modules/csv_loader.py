@@ -2,6 +2,20 @@ import csv
 import os
 
 
+def _parse_optional_int(value):
+    """Parse optional int field - tra ve None neu trong/khong co"""
+    if value is None or str(value).strip() == "":
+        return None
+    return int(value)
+
+
+def _parse_optional_float(value):
+    """Parse optional float field - tra ve None neu trong/khong co"""
+    if value is None or str(value).strip() == "":
+        return None
+    return float(value)
+
+
 def load_product_csv(csv_path):
     """
     Đọc file CSV cấu hình mã hàng.
@@ -46,7 +60,13 @@ def load_product_csv(csv_path):
                         int(row["compare_y_max"]),
                     ),
 
-                    "confidence": float(row["confidence"])
+                    "confidence": float(row["confidence"]),
+
+                    # Keypoint angle check (optional - de trong neu khong can)
+                    "keypoint_idx_1": _parse_optional_int(row.get("keypoint_idx_1")),
+                    "keypoint_idx_2": _parse_optional_int(row.get("keypoint_idx_2")),
+                    "expected_angle": _parse_optional_float(row.get("expected_angle")),
+                    "angle_tolerance": _parse_optional_float(row.get("angle_tolerance")),
                 }
 
                 roi_rules.append(rule)
