@@ -246,4 +246,3 @@ def test_camera_config_loader():
 
 if __name__ == "__main__":
     test_camera_config_loader()
-
