@@ -106,7 +106,7 @@ def log_message(message: str) -> None:
         f.write(log_msg + "\n")
 
 
-def poll_cameras_once(watchers: dict, used_cameras: list, images: dict) -> dict:
+def poll_cameras_once(watchers: dict, used_cameras: list, images: dict, temp_paths: dict) -> tuple:
     """
     Kiem tra 1 luot tat ca camera (NON-BLOCKING).
     - Khong cho, chi kiem tra co anh moi khong
@@ -117,9 +117,10 @@ def poll_cameras_once(watchers: dict, used_cameras: list, images: dict) -> dict:
         watchers: {"CAM1": ImageWatcher, ...}
         used_cameras: Danh sach camera can cho
         images: Dict anh da thu thap duoc (se duoc cap nhat)
+        temp_paths: Dict luu duong dan temp file (de cleanup sau)
         
     Returns:
-        dict: images da duoc cap nhat
+        tuple: (images, temp_paths) da duoc cap nhat
     """
     for cam in used_cameras:
         if cam in images:
@@ -132,9 +133,10 @@ def poll_cameras_once(watchers: dict, used_cameras: list, images: dict) -> dict:
             image = cv2.imread(image_path)
             if image is not None:
                 images[cam] = image
+                temp_paths[cam] = image_path  # Luu temp path de cleanup sau
                 log_message(f"[GOT] Camera {cam} - image received {image.shape}")
     
-    return images
+    return images, temp_paths
 
 def main():
     """
@@ -202,6 +204,7 @@ def main():
         
         batch_num = 0
         images = {}  # Thu thap anh dan dan (non-blocking)
+        temp_paths = {}  # Track temp files de cleanup sau khi xu ly
         
         # Khoi tao GUI (dynamic window name)
         gui_window_name = GUI_WINDOW_NAME_TEMPLATE.format(product_code=current_product_code)
@@ -242,6 +245,7 @@ def main():
                     
                     # Reset images (cho batch moi)
                     images = {}
+                    temp_paths = {}
                     
                 except FileNotFoundError as e:
                     log_message(f"[ERROR] Product CSV not found: {e}")
@@ -250,7 +254,7 @@ def main():
                     current_product_code = new_product_code  # Keep using old one
             
             # --- Buoc 1: Poll anh (KHONG block) ---
-            images = poll_cameras_once(watchers, used_cameras, images)
+            images, temp_paths = poll_cameras_once(watchers, used_cameras, images, temp_paths)
             
             # --- Buoc 2: Refresh GUI + doc phim (BAT BUOC moi vong) ---
             action = gui.show(wait_time=30)
@@ -385,8 +389,16 @@ def main():
             log_message(f"[BATCH {batch_num}] COMPLETED - RESULT: {final_status}")
             log_message("")
             
+            # === Cleanup temp files ===
+            for cam, temp_path in temp_paths.items():
+                try:
+                    watchers[cam].cleanup_temp_file(temp_path)
+                except Exception as e:
+                    log_message(f"[CLEANUP] Error cleaning {cam} temp file: {e}")
+            
             # Reset cho batch tiep theo
             images = {}
+            temp_paths = {}
             log_message(f"[WAITING] Waiting for images from: {used_cameras}")
     
     except FileNotFoundError as e:

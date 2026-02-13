@@ -305,3 +305,35 @@
 [2026-02-13 11:25:11] 
 [2026-02-13 11:25:11] [WAITING] Waiting for images from: ['CAM1']
 [2026-02-13 11:25:23] [GUI] User pressed Quit
+[2026-02-13 13:27:02] ======================================================================
+[2026-02-13 13:27:02] SYSTEM STARTED - Waiting for camera images
+[2026-02-13 13:27:02] Product mode: manual
+[2026-02-13 13:27:02] Product code: ABC123x
+[2026-02-13 13:27:02] ======================================================================
+[2026-02-13 13:27:02] [LOADING] Camera configuration...
+[2026-02-13 13:27:02] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-13 13:27:02] [WAITING] Waiting for images from: ['CAM1']
+[2026-02-13 13:27:17] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-13 13:27:17] [READY] All cameras ready. Processing batch #1...
+[2026-02-13 13:27:17] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-13 13:27:19]   roi_001: NG (NOT_FOUND)
+[2026-02-13 13:27:19] [BATCH 1] COMPLETED - RESULT: NG
+[2026-02-13 13:27:19] 
+[2026-02-13 13:27:19] [WAITING] Waiting for images from: ['CAM1']
+[2026-02-13 13:27:20] [GUI] User pressed Quit
+[2026-02-13 14:55:42] ======================================================================
+[2026-02-13 14:55:42] SYSTEM STARTED - Waiting for camera images
+[2026-02-13 14:55:42] Product mode: manual
+[2026-02-13 14:55:42] Product code: ABC123x
+[2026-02-13 14:55:42] ======================================================================
+[2026-02-13 14:55:42] [LOADING] Camera configuration...
+[2026-02-13 14:55:42] [INIT] ImageWatcher for CAM1: D:/ImageTest/CAM1
+[2026-02-13 14:55:42] [WAITING] Waiting for images from: ['CAM1']
+[2026-02-13 14:55:48] [GOT] Camera CAM1 - image received (2464, 3280, 3)
+[2026-02-13 14:55:48] [READY] All cameras ready. Processing batch #1...
+[2026-02-13 14:55:48] [BATCH 1] Processing CAM1 - (2464, 3280, 3)
+[2026-02-13 14:55:50]   roi_001: NG (NOT_FOUND)
+[2026-02-13 14:55:50] [BATCH 1] COMPLETED - RESULT: NG
+[2026-02-13 14:55:50] 
+[2026-02-13 14:55:50] [WAITING] Waiting for images from: ['CAM1']
+[2026-02-13 14:56:05] [GUI] User pressed Quit
